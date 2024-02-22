@@ -6,12 +6,23 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gogapopp/url-shortener/shortener/internal/lib/logger"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository/memory"
 	"github.com/gogapopp/url-shortener/shortener/internal/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+type MockProducer struct {
+	mock.Mock
+}
+
+func (m *MockProducer) Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error {
+	args := m.Called(msg, deliveryChan)
+	return args.Error(0)
+}
 
 func TestPostHandlers(t *testing.T) {
 	tests := []struct {
@@ -32,7 +43,9 @@ func TestPostHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	defer logger.Sync()
 	repo := memory.NewRepository()
-	service := service.NewService(repo, nil, logger)
+	mockProducer := new(MockProducer)
+	mockProducer.On("Produce", mock.Anything, mock.Anything).Return(nil)
+	service := service.NewService(repo, mockProducer, logger)
 	handlers := NewHandlers(service, logger)
 
 	for i, tt := range tests {

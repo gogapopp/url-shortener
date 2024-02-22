@@ -4,11 +4,22 @@ import (
 	"context"
 	"testing"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gogapopp/url-shortener/shortener/internal/lib/logger"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository/memory"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+type MockProducer struct {
+	mock.Mock
+}
+
+func (m *MockProducer) Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error {
+	args := m.Called(msg, deliveryChan)
+	return args.Error(0)
+}
 
 func TestServiceSave(t *testing.T) {
 	tests := []struct {
@@ -30,12 +41,15 @@ func TestServiceSave(t *testing.T) {
 	logger, err := logger.NewLogger()
 	assert.NoError(t, err)
 	defer logger.Sync()
-	service := NewService(repo, nil, logger)
+	mockProducer := new(MockProducer)
+	mockProducer.On("Produce", mock.Anything, mock.Anything).Return(nil)
+	service := NewService(repo, mockProducer, logger)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := service.Save(context.TODO(), tt.longURL, tt.shortURL)
 			assert.Equal(t, tt.wantErr, err)
+			mockProducer.AssertExpectations(t)
 		})
 	}
 }
@@ -69,13 +83,16 @@ func TestServiceGet(t *testing.T) {
 	logger, err := logger.NewLogger()
 	assert.NoError(t, err)
 	defer logger.Sync()
-	service := NewService(repo, nil, logger)
+	mockProducer := new(MockProducer)
+	mockProducer.On("Produce", mock.Anything, mock.Anything).Return(nil)
+	service := NewService(repo, mockProducer, logger)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			url, err := service.Get(context.TODO(), tt.shortURL)
 			assert.Equal(t, tt.wantErr, err)
 			assert.Equal(t, tt.wantURL, url)
+			mockProducer.AssertExpectations(t)
 		})
 	}
 }
