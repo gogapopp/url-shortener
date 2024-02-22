@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/gogapopp/url-shortener/shortener/internal/handlers"
 	"github.com/gogapopp/url-shortener/shortener/internal/lib/logger"
+	"github.com/gogapopp/url-shortener/shortener/internal/queue"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository/memory"
 	"github.com/gogapopp/url-shortener/shortener/internal/service"
 )
@@ -28,9 +29,15 @@ func main() {
 			logger.Fatal(err)
 		}
 	}()
+
 	repository := memory.NewRepository()
-	service := service.NewService(repository)
+	producer, err := queue.NewKafkaProducer()
+	if err != nil {
+		logger.Fatal(err)
+	}
+	service := service.NewService(repository, producer, logger)
 	handler := handlers.NewHandlers(service, logger)
+
 	r := chi.NewRouter()
 	r.Post("/save", handler.PostURLSaveHandler())
 	r.Get("/get", handler.GetURLGetHandler())

@@ -32,7 +32,7 @@ func TestPostHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	defer logger.Sync()
 	repo := memory.NewRepository()
-	service := service.NewService(repo)
+	service := service.NewService(repo, nil, logger)
 	handlers := NewHandlers(service, logger)
 
 	for i, tt := range tests {

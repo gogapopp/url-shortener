@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gogapopp/url-shortener/shortener/internal/lib/logger"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository/memory"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,10 @@ func TestServiceSave(t *testing.T) {
 	}
 
 	repo := memory.NewRepository()
-	service := NewService(repo)
+	logger, err := logger.NewLogger()
+	assert.NoError(t, err)
+	defer logger.Sync()
+	service := NewService(repo, nil, logger)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -62,7 +66,10 @@ func TestServiceGet(t *testing.T) {
 	_ = repo.Save(context.Background(), "http://example2.ru/", "http://example5.com")
 	_ = repo.Save(context.Background(), "http://example3.ru/", "http://example6.com")
 	_ = repo.Save(context.Background(), "http://example4.ru/", "http://example7.com")
-	service := NewService(repo)
+	logger, err := logger.NewLogger()
+	assert.NoError(t, err)
+	defer logger.Sync()
+	service := NewService(repo, nil, logger)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

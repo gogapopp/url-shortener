@@ -1,4 +1,4 @@
-package linkshortener
+package urlgenerator
 
 import (
 	"testing"

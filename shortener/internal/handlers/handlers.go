@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	linkshortener "github.com/gogapopp/url-shortener/shortener/internal/lib/link-shortener"
+	urlgenerator "github.com/gogapopp/url-shortener/shortener/internal/lib/url-generator"
 	"github.com/gogapopp/url-shortener/shortener/internal/repository"
 	"go.uber.org/zap"
 )
@@ -39,7 +39,7 @@ func (h *Handlers) PostURLSaveHandler() http.HandlerFunc {
 			http.Error(w, "something went wrong", http.StatusInternalServerError)
 			return
 		}
-		shortURL, err := linkshortener.GenerateShortURL()
+		shortURL, err := urlgenerator.GenerateShortURL()
 		if err != nil {
 			h.logger.Errorf("%s: %w", op, err)
 			http.Error(w, "something went wrong", http.StatusInternalServerError)

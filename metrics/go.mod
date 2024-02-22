@@ -1,11 +1,9 @@
-module github.com/gogapopp/url-shortener/shortener
+module github.com/gogapopp/url-shortener/metrics
 
 go 1.22.0
 
 require (
-	github.com/confluentinc/confluent-kafka-go v1.9.2
-	github.com/go-chi/chi v1.5.5
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.8.1
 	go.uber.org/zap v1.27.0
 )
 
